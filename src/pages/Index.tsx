@@ -26,7 +26,30 @@ const Index = () => {
 
   const handleAuthSuccess = (userData: any) => {
     setUser(userData);
-    setCurrentPage('form');
+    
+    // If it's an existing user, skip form and go directly to results
+    if (userData.isReturningUser) {
+      // Mock existing user data for demonstration
+      const existingFormData = {
+        name: userData.name || userData.email.split('@')[0],
+        education: "bachelor",
+        gpa: "3.5",
+        targetCountry: "usa",
+        major: "computer-science",
+        economicSituation: "medium"
+      };
+      setFormData(existingFormData);
+      setCurrentPage('results');
+      setHasVisitedResults(true);
+      
+      toast({
+        title: "欢迎回来！",
+        description: "正在为您加载个性化的奖学金推荐...",
+      });
+    } else {
+      // New user goes to form
+      setCurrentPage('form');
+    }
   };
 
   const handleFormSubmit = (data: any) => {
