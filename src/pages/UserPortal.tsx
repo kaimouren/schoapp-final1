@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,7 @@ interface UserPortalProps {
 
 const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClickApply, user }: UserPortalProps) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('saved');
+  const [activeTab, setActiveTab] = useState('profile');
   const [userProfile, setUserProfile] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -151,6 +150,10 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              我的资料
+            </TabsTrigger>
             <TabsTrigger value="saved" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
               我的收藏 ({savedScholarships.length})
@@ -159,11 +162,187 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
               <FileText className="h-4 w-4" />
               我的申请 ({appliedScholarships.length})
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              我的资料
-            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="profile" className="space-y-6">
+            {/* 个人信息编辑 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  个人信息
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">姓名</Label>
+                    <Input
+                      id="name"
+                      value={userProfile.name}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="请输入您的姓名"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">邮箱</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={userProfile.email}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="请输入您的邮箱"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="phone">手机号</Label>
+                  <Input
+                    id="phone"
+                    value={userProfile.phone}
+                    onChange={(e) => setUserProfile(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="请输入您的手机号"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="university">就读院校</Label>
+                    <Input
+                      id="university"
+                      value={userProfile.university}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, university: e.target.value }))}
+                      placeholder="请输入您的院校"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="major">专业</Label>
+                    <Input
+                      id="major"
+                      value={userProfile.major}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, major: e.target.value }))}
+                      placeholder="请输入您的专业"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="gpa">GPA</Label>
+                  <Input
+                    id="gpa"
+                    value={userProfile.gpa}
+                    onChange={(e) => setUserProfile(prev => ({ ...prev, gpa: e.target.value }))}
+                    placeholder="请输入您的GPA"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="personalStatement">个人陈述</Label>
+                  <Textarea
+                    id="personalStatement"
+                    value={userProfile.personalStatement}
+                    onChange={(e) => setUserProfile(prev => ({ ...prev, personalStatement: e.target.value }))}
+                    placeholder="请简要介绍您的学术背景和申请动机"
+                    rows={4}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="resume">简历上传</Label>
+                  <Input
+                    id="resume"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleResumeUpload}
+                    className="cursor-pointer"
+                  />
+                  {userProfile.resume && (
+                    <p className="text-sm text-green-600 mt-1">
+                      已上传: {userProfile.resume.name}
+                    </p>
+                  )}
+                </div>
+                
+                <Button onClick={handleProfileUpdate} className="w-full">
+                  更新资料
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* 文档模板库 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  文档模板库
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">个人陈述模板</h4>
+                      <p className="text-sm text-gray-600">标准个人陈述写作模板</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadTemplate('个人陈述模板')}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      下载
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">推荐信模板</h4>
+                      <p className="text-sm text-gray-600">教授推荐信写作模板</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadTemplate('推荐信模板')}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      下载
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">简历模板</h4>
+                      <p className="text-sm text-gray-600">学术简历标准模板</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadTemplate('简历模板')}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      下载
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-amber-50">
+                    <div>
+                      <h4 className="font-medium text-amber-800">定制修改服务</h4>
+                      <p className="text-sm text-amber-600">付费用户专享个性化文档修改</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      联系
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="saved" className="space-y-6">
             {savedScholarships.length === 0 ? (
@@ -295,188 +474,6 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
                 ))}
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="profile" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* 个人信息编辑 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    个人信息
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">姓名</Label>
-                      <Input
-                        id="name"
-                        value={userProfile.name}
-                        onChange={(e) => setUserProfile(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="请输入您的姓名"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">邮箱</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={userProfile.email}
-                        onChange={(e) => setUserProfile(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="请输入您的邮箱"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="phone">手机号</Label>
-                    <Input
-                      id="phone"
-                      value={userProfile.phone}
-                      onChange={(e) => setUserProfile(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="请输入您的手机号"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="university">就读院校</Label>
-                      <Input
-                        id="university"
-                        value={userProfile.university}
-                        onChange={(e) => setUserProfile(prev => ({ ...prev, university: e.target.value }))}
-                        placeholder="请输入您的院校"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="major">专业</Label>
-                      <Input
-                        id="major"
-                        value={userProfile.major}
-                        onChange={(e) => setUserProfile(prev => ({ ...prev, major: e.target.value }))}
-                        placeholder="请输入您的专业"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="gpa">GPA</Label>
-                    <Input
-                      id="gpa"
-                      value={userProfile.gpa}
-                      onChange={(e) => setUserProfile(prev => ({ ...prev, gpa: e.target.value }))}
-                      placeholder="请输入您的GPA"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="personalStatement">个人陈述</Label>
-                    <Textarea
-                      id="personalStatement"
-                      value={userProfile.personalStatement}
-                      onChange={(e) => setUserProfile(prev => ({ ...prev, personalStatement: e.target.value }))}
-                      placeholder="请简要介绍您的学术背景和申请动机"
-                      rows={4}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="resume">简历上传</Label>
-                    <Input
-                      id="resume"
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleResumeUpload}
-                      className="cursor-pointer"
-                    />
-                    {userProfile.resume && (
-                      <p className="text-sm text-green-600 mt-1">
-                        已上传: {userProfile.resume.name}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <Button onClick={handleProfileUpdate} className="w-full">
-                    更新资料
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* 文档模板库 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    文档模板库
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">个人陈述模板</h4>
-                        <p className="text-sm text-gray-600">标准个人陈述写作模板</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadTemplate('个人陈述模板')}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        下载
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">推荐信模板</h4>
-                        <p className="text-sm text-gray-600">教授推荐信写作模板</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadTemplate('推荐信模板')}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        下载
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">简历模板</h4>
-                        <p className="text-sm text-gray-600">学术简历标准模板</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadTemplate('简历模板')}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        下载
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 border rounded-lg bg-amber-50">
-                      <div>
-                        <h4 className="font-medium text-amber-800">定制修改服务</h4>
-                        <p className="text-sm text-amber-600">付费用户专享个性化文档修改</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-amber-300 text-amber-700 hover:bg-amber-100"
-                      >
-                        <Mail className="h-4 w-4 mr-1" />
-                        联系
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
