@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar, DollarSign, MapPin, Heart, Download, ExternalLink, Award, CheckCircle, Clock, XCircle, FileText, User, Upload, Mail } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, Calendar, DollarSign, MapPin, Heart, Download, ExternalLink, Award, CheckCircle, Clock, XCircle, FileText, User, Upload, Mail, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserPortalProps {
@@ -17,19 +19,69 @@ interface UserPortalProps {
   user: any;
 }
 
+interface EducationRecord {
+  id: string;
+  schoolName: string;
+  degree: string;
+  major: string;
+  status: string;
+  gpa: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface AwardRecord {
+  id: string;
+  awardName: string;
+  institution: string;
+  awardDate: string;
+  description: string;
+}
+
 const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClickApply, user }: UserPortalProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
+  
+  // Enhanced user profile state
   const [userProfile, setUserProfile] = useState({
+    // 基础信息
     name: user?.name || '',
-    email: user?.email || '',
+    gender: '',
+    birthDate: '',
+    nationality: '',
     phone: '',
-    university: '',
-    major: '',
-    gpa: '',
+    email: user?.email || '',
+    city: '',
+    ieltsScore: '',
+    toeflScore: '',
     personalStatement: '',
     resume: null as File | null
   });
+
+  // 教育经历
+  const [educationRecords, setEducationRecords] = useState<EducationRecord[]>([
+    {
+      id: '1',
+      schoolName: '',
+      degree: '',
+      major: '',
+      status: '',
+      gpa: '',
+      startDate: '',
+      endDate: ''
+    }
+  ]);
+
+  // 奖项荣誉
+  const [awardRecords, setAwardRecords] = useState<AwardRecord[]>([
+    {
+      id: '1',
+      awardName: '',
+      institution: '',
+      awardDate: '',
+      description: ''
+    }
+  ]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -93,6 +145,44 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
     }
   };
 
+  const calculateDetailedProgress = () => {
+    // 基础信息 (30%)
+    const basicFields = [
+      userProfile.name, userProfile.gender, userProfile.birthDate, 
+      userProfile.nationality, userProfile.phone, userProfile.email, 
+      userProfile.city
+    ];
+    const basicCompleted = basicFields.filter(field => field && field.trim() !== '').length;
+    const basicProgress = (basicCompleted / basicFields.length) * 30;
+
+    // 教育经历 (30%)
+    const educationCompleted = educationRecords.filter(record => 
+      record.schoolName && record.degree && record.major && record.status
+    ).length;
+    const educationProgress = educationRecords.length > 0 
+      ? (educationCompleted / educationRecords.length) * 30 
+      : 0;
+
+    // 奖项荣誉 (20%)
+    const awardCompleted = awardRecords.filter(record => 
+      record.awardName && record.institution && record.awardDate
+    ).length;
+    const awardProgress = awardRecords.length > 0 
+      ? (awardCompleted / awardRecords.length) * 20 
+      : 0;
+
+    // 简历上传 (20%)
+    const resumeProgress = userProfile.resume ? 20 : 0;
+
+    return {
+      basic: Math.round(basicProgress),
+      education: Math.round(educationProgress),
+      awards: Math.round(awardProgress),
+      resume: resumeProgress,
+      total: Math.round(basicProgress + educationProgress + awardProgress + resumeProgress)
+    };
+  };
+
   const calculateDaysLeft = (deadline: string) => {
     const deadlineDate = new Date(deadline);
     const today = new Date();
@@ -101,12 +191,60 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
     return diffDays;
   };
 
-  const calculateProfileCompletion = () => {
-    const fields = [userProfile.name, userProfile.email, userProfile.phone, userProfile.university, userProfile.major, userProfile.gpa, userProfile.personalStatement];
-    const completedFields = fields.filter(field => field && field.trim() !== '').length;
-    const resumeBonus = userProfile.resume ? 1 : 0;
-    return Math.round(((completedFields + resumeBonus) / 8) * 100);
+  const addEducationRecord = () => {
+    const newRecord: EducationRecord = {
+      id: Date.now().toString(),
+      schoolName: '',
+      degree: '',
+      major: '',
+      status: '',
+      gpa: '',
+      startDate: '',
+      endDate: ''
+    };
+    setEducationRecords(prev => [...prev, newRecord]);
   };
+
+  const updateEducationRecord = (id: string, field: keyof EducationRecord, value: string) => {
+    setEducationRecords(prev => 
+      prev.map(record => 
+        record.id === id ? { ...record, [field]: value } : record
+      )
+    );
+  };
+
+  const removeEducationRecord = (id: string) => {
+    if (educationRecords.length > 1) {
+      setEducationRecords(prev => prev.filter(record => record.id !== id));
+    }
+  };
+
+  const addAwardRecord = () => {
+    const newRecord: AwardRecord = {
+      id: Date.now().toString(),
+      awardName: '',
+      institution: '',
+      awardDate: '',
+      description: ''
+    };
+    setAwardRecords(prev => [...prev, newRecord]);
+  };
+
+  const updateAwardRecord = (id: string, field: keyof AwardRecord, value: string) => {
+    setAwardRecords(prev => 
+      prev.map(record => 
+        record.id === id ? { ...record, [field]: value } : record
+      )
+    );
+  };
+
+  const removeAwardRecord = (id: string) => {
+    if (awardRecords.length > 1) {
+      setAwardRecords(prev => prev.filter(record => record.id !== id));
+    }
+  };
+
+  const progress = calculateDetailedProgress();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -126,28 +264,6 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
           </div>
         </div>
 
-        {/* 资料完善进度条 */}
-        <Card className="mb-8 border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">🎯 个人资料完善</h3>
-                <p className="text-sm text-gray-600">完善资料可提高申请成功率</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{calculateProfileCompletion()}%</div>
-                <div className="text-sm text-gray-500">📝 已提交申请：{appliedScholarships.length}/∞</div>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${calculateProfileCompletion()}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="profile" className="flex items-center gap-2">
@@ -165,18 +281,58 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            {/* 个人信息编辑 */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">🎯 资料完成度：{progress.total}%</h3>
+                    <p className="text-sm text-gray-600 mt-1">完善资料可显著提高申请成功率</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">📝 已提交申请：{appliedScholarships.length}/∞</div>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <Progress value={progress.total} className="h-3" />
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="font-semibold text-blue-700">基础信息</div>
+                    <div className="text-2xl font-bold text-blue-600">{progress.basic}%</div>
+                    <div className="text-xs text-gray-500">权重 30%</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="font-semibold text-green-700">教育经历</div>
+                    <div className="text-2xl font-bold text-green-600">{progress.education}%</div>
+                    <div className="text-xs text-gray-500">权重 30%</div>
+                  </div>
+                  <div className="text-center p-3 bg-amber-50 rounded-lg">
+                    <div className="font-semibold text-amber-700">奖项荣誉</div>
+                    <div className="text-2xl font-bold text-amber-600">{progress.awards}%</div>
+                    <div className="text-xs text-gray-500">权重 20%</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="font-semibold text-purple-700">简历上传</div>
+                    <div className="text-2xl font-bold text-purple-600">{progress.resume}%</div>
+                    <div className="text-xs text-gray-500">权重 20%</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  个人信息
+                  基础信息
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">姓名</Label>
+                    <Label htmlFor="name">姓名 *</Label>
                     <Input
                       id="name"
                       value={userProfile.name}
@@ -185,7 +341,47 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">邮箱</Label>
+                    <Label htmlFor="gender">性别 *</Label>
+                    <Select onValueChange={(value) => setUserProfile(prev => ({ ...prev, gender: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择性别" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">男</SelectItem>
+                        <SelectItem value="female">女</SelectItem>
+                        <SelectItem value="other">其他</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="birthDate">出生日期 *</Label>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={userProfile.birthDate}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, birthDate: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="nationality">国籍 *</Label>
+                    <Input
+                      id="nationality"
+                      value={userProfile.nationality}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, nationality: e.target.value }))}
+                      placeholder="请输入您的国籍"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">手机号 *</Label>
+                    <Input
+                      id="phone"
+                      value={userProfile.phone}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="请输入您的手机号"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">邮箱 *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -194,49 +390,235 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
                       placeholder="请输入您的邮箱"
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">手机号</Label>
-                  <Input
-                    id="phone"
-                    value={userProfile.phone}
-                    onChange={(e) => setUserProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="请输入您的手机号"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="university">就读院校</Label>
+                    <Label htmlFor="city">当前居住城市 *</Label>
                     <Input
-                      id="university"
-                      value={userProfile.university}
-                      onChange={(e) => setUserProfile(prev => ({ ...prev, university: e.target.value }))}
-                      placeholder="请输入您的院校"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="major">专业</Label>
-                    <Input
-                      id="major"
-                      value={userProfile.major}
-                      onChange={(e) => setUserProfile(prev => ({ ...prev, major: e.target.value }))}
-                      placeholder="请输入您的专业"
+                      id="city"
+                      value={userProfile.city}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, city: e.target.value }))}
+                      placeholder="请输入您的居住城市"
                     />
                   </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="gpa">GPA</Label>
-                  <Input
-                    id="gpa"
-                    value={userProfile.gpa}
-                    onChange={(e) => setUserProfile(prev => ({ ...prev, gpa: e.target.value }))}
-                    placeholder="请输入您的GPA"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                  <div>
+                    <Label htmlFor="ieltsScore">雅思成绩</Label>
+                    <Input
+                      id="ieltsScore"
+                      value={userProfile.ieltsScore}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, ieltsScore: e.target.value }))}
+                      placeholder="例：7.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="toeflScore">托福成绩</Label>
+                    <Input
+                      id="toeflScore"
+                      value={userProfile.toeflScore}
+                      onChange={(e) => setUserProfile(prev => ({ ...prev, toeflScore: e.target.value }))}
+                      placeholder="例：100"
+                    />
+                  </div>
                 </div>
-                
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    教育经历
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addEducationRecord}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    添加教育经历
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {educationRecords.map((record, index) => (
+                  <div key={record.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-gray-900">教育经历 #{index + 1}</h4>
+                      {educationRecords.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeEducationRecord(record.id)}
+                          className="text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>学校名称 *</Label>
+                        <Input
+                          value={record.schoolName}
+                          onChange={(e) => updateEducationRecord(record.id, 'schoolName', e.target.value)}
+                          placeholder="请输入学校名称"
+                        />
+                      </div>
+                      <div>
+                        <Label>学历层级 *</Label>
+                        <Select onValueChange={(value) => updateEducationRecord(record.id, 'degree', value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择学历层级" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bachelor">本科</SelectItem>
+                            <SelectItem value="master">硕士</SelectItem>
+                            <SelectItem value="phd">博士</SelectItem>
+                            <SelectItem value="other">其他</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>所学专业 *</Label>
+                        <Input
+                          value={record.major}
+                          onChange={(e) => updateEducationRecord(record.id, 'major', e.target.value)}
+                          placeholder="请输入专业名称"
+                        />
+                      </div>
+                      <div>
+                        <Label>当前状态 *</Label>
+                        <Select onValueChange={(value) => updateEducationRecord(record.id, 'status', value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择状态" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="studying">在读</SelectItem>
+                            <SelectItem value="graduated">已毕业</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>平均成绩 (GPA)</Label>
+                        <Input
+                          value={record.gpa}
+                          onChange={(e) => updateEducationRecord(record.id, 'gpa', e.target.value)}
+                          placeholder="例：3.8/4.0"
+                        />
+                      </div>
+                      <div>
+                        <Label>入学时间</Label>
+                        <Input
+                          type="date"
+                          value={record.startDate}
+                          onChange={(e) => updateEducationRecord(record.id, 'startDate', e.target.value)}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>毕业时间</Label>
+                        <Input
+                          type="date"
+                          value={record.endDate}
+                          onChange={(e) => updateEducationRecord(record.id, 'endDate', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    奖项荣誉
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addAwardRecord}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    添加奖项
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {awardRecords.map((record, index) => (
+                  <div key={record.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-gray-900">奖项 #{index + 1}</h4>
+                      {awardRecords.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAwardRecord(record.id)}
+                          className="text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>奖项名称 *</Label>
+                        <Input
+                          value={record.awardName}
+                          onChange={(e) => updateAwardRecord(record.id, 'awardName', e.target.value)}
+                          placeholder="请输入奖项名称"
+                        />
+                      </div>
+                      <div>
+                        <Label>授予机构 *</Label>
+                        <Input
+                          value={record.institution}
+                          onChange={(e) => updateAwardRecord(record.id, 'institution', e.target.value)}
+                          placeholder="请输入授予机构"
+                        />
+                      </div>
+                      <div>
+                        <Label>获奖日期 *</Label>
+                        <Input
+                          type="date"
+                          value={record.awardDate}
+                          onChange={(e) => updateAwardRecord(record.id, 'awardDate', e.target.value)}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>简短描述 (不超过50字)</Label>
+                        <Textarea
+                          value={record.description}
+                          onChange={(e) => updateAwardRecord(record.id, 'description', e.target.value)}
+                          placeholder="请简短描述获奖情况"
+                          rows={2}
+                          maxLength={50}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          {record.description.length}/50
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  补充材料
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="personalStatement">个人陈述</Label>
                   <Textarea
@@ -249,7 +631,7 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
                 </div>
                 
                 <div>
-                  <Label htmlFor="resume">简历上传</Label>
+                  <Label htmlFor="resume">简历上传 *</Label>
                   <Input
                     id="resume"
                     type="file"
@@ -265,12 +647,11 @@ const UserPortal = ({ onBack, savedScholarships, appliedScholarships, onOneClick
                 </div>
                 
                 <Button onClick={handleProfileUpdate} className="w-full">
-                  更新资料
+                  保存资料
                 </Button>
               </CardContent>
             </Card>
 
-            {/* 文档模板库 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
