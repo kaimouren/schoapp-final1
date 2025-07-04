@@ -7,15 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Calendar, DollarSign, MapPin, Award, Upload, FileText, CheckCircle, Sparkles, Crown } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, MapPin, Award, Upload, FileText, CheckCircle, Sparkles, Crown, Heart } from "lucide-react";
 import PricingModal from "@/components/PricingModal";
 
 interface ScholarshipDetailsProps {
   scholarship: any;
   onBack: () => void;
+  onSaveScholarship?: (scholarship: any) => void;
+  onOneClickApply?: (scholarship: any) => void;
+  isSaved?: boolean;
 }
 
-const ScholarshipDetails = ({ scholarship, onBack }: ScholarshipDetailsProps) => {
+const ScholarshipDetails = ({ scholarship, onBack, onSaveScholarship, onOneClickApply, isSaved }: ScholarshipDetailsProps) => {
   const [answers, setAnswers] = useState<{[key: number]: string}>({});
   const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File[]}>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -61,6 +64,18 @@ const ScholarshipDetails = ({ scholarship, onBack }: ScholarshipDetailsProps) =>
     setIsSubmitted(true);
   };
 
+  const handleSaveToggle = () => {
+    if (onSaveScholarship) {
+      onSaveScholarship(scholarship);
+    }
+  };
+
+  const handleOneClickApply = () => {
+    if (onOneClickApply) {
+      onOneClickApply(scholarship);
+    }
+  };
+
   const isFormComplete = () => {
     const answersComplete = scholarship.questions?.every((_, index) => answers[index]?.trim());
     const documentsComplete = scholarship.requiredDocuments?.every(doc => uploadedFiles[doc]?.length > 0);
@@ -96,18 +111,43 @@ const ScholarshipDetails = ({ scholarship, onBack }: ScholarshipDetailsProps) =>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="mr-4 hover:bg-blue-100"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            返回列表
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">奖学金申请</h1>
-            <p className="text-gray-600 mt-1">请完成以下申请材料</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              onClick={onBack}
+              className="mr-4 hover:bg-blue-100"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              返回列表
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">奖学金申请</h1>
+              <p className="text-gray-600 mt-1">请完成以下申请材料</p>
+            </div>
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            {onSaveScholarship && (
+              <Button
+                variant="outline"
+                onClick={handleSaveToggle}
+                className={`flex items-center gap-2 ${isSaved ? 'bg-red-50 text-red-600 border-red-200' : 'hover:bg-gray-50'}`}
+              >
+                <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                {isSaved ? '取消收藏' : '收藏'}
+              </Button>
+            )}
+            
+            {onOneClickApply && (
+              <Button
+                onClick={handleOneClickApply}
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              >
+                ⚡ 一键申请
+              </Button>
+            )}
           </div>
         </div>
 
