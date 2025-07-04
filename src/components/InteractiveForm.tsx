@@ -4,19 +4,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, User, GraduationCap, Target, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface InteractiveFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit?: (data: any) => void;
-  onBack?: () => void;
-  user?: any;
+  onSubmit: (data: any) => void;
+  onBack: () => void;
+  user: any;
 }
 
-const InteractiveForm = ({ isOpen, onClose, onSubmit, onBack, user }: InteractiveFormProps) => {
+const InteractiveForm = ({ onSubmit, onBack, user }: InteractiveFormProps) => {
   const { toast } = useToast();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResumeUpload, setShowResumeUpload] = useState(true);
@@ -67,6 +64,126 @@ const InteractiveForm = ({ isOpen, onClose, onSubmit, onBack, user }: Interactiv
     setShowResumeUpload(false);
     setCurrentQuestion(4); // Jump to the 5th question (target country)
   };
+
+  if (showResumeUpload) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 py-8">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <div className="flex items-center justify-between mb-8">
+            <Button
+              variant="ghost"
+              onClick={onBack}
+              className="hover:bg-purple-100"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              返回首页
+            </Button>
+          </div>
+
+          <Card className="shadow-xl border-0 mb-8">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+              <div className="flex items-center mb-4">
+                <div className="bg-blue-500 p-3 rounded-full mr-4">
+                  <Upload className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">上传简历 (可选)</h2>
+                  <p className="text-blue-100 mt-1">上传简历可以帮助我们快速提取您的信息</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              {!uploadedResume ? (
+                <div className="space-y-6">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <Label htmlFor="resume-upload" className="cursor-pointer">
+                      <span className="text-lg font-medium text-gray-700">点击上传简历</span>
+                      <p className="text-sm text-gray-500 mt-2">支持PDF或Word格式，最大5MB</p>
+                    </Label>
+                    <Input
+                      id="resume-upload"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleResumeUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  
+                  <div className="text-center">
+                    <Button
+                      variant="outline"
+                      onClick={handleSkipUpload}
+                      className="px-8 py-3"
+                    >
+                      跳过，手动填写信息
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {!extractedData ? (
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">正在解析简历中...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h3 className="text-lg font-semibold text-green-800 mb-3">已提取信息，请核对确认：</h3>
+                        <div className="grid gap-4">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">姓名：</span>
+                            <span className="font-medium">{extractedData.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">学历：</span>
+                            <span className="font-medium">
+                              {extractedData.education === 'bachelor' ? '本科' : 
+                               extractedData.education === 'master' ? '硕士' : 
+                               extractedData.education === 'phd' ? '博士' : '高中'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">GPA：</span>
+                            <span className="font-medium">{extractedData.gpa}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">专业：</span>
+                            <span className="font-medium">计算机科学</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-4">
+                        <Button
+                          onClick={handleConfirmExtractedData}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                        >
+                          确认信息，继续
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleSkipUpload}
+                          className="flex-1"
+                        >
+                          手动填写
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="text-center text-gray-600">
+            欢迎，{user?.name || user?.email || '用户'}！
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const questions = [
     {
@@ -195,10 +312,10 @@ const InteractiveForm = ({ isOpen, onClose, onSubmit, onBack, user }: Interactiv
   ];
 
   const currentQ = questions[currentQuestion];
-  const IconComponent = currentQ?.icon || User;
+  const IconComponent = currentQ.icon;
 
   const isCurrentQuestionValid = () => {
-    const value = formData[currentQ?.id as keyof typeof formData];
+    const value = formData[currentQ.id as keyof typeof formData];
     return value && value.trim() !== '';
   };
 
@@ -221,10 +338,7 @@ const InteractiveForm = ({ isOpen, onClose, onSubmit, onBack, user }: Interactiv
       });
 
       setTimeout(() => {
-        if (onSubmit) {
-          onSubmit(formData);
-        }
-        onClose();
+        onSubmit(formData);
       }, 1500);
     }
   };
@@ -237,177 +351,77 @@ const InteractiveForm = ({ isOpen, onClose, onSubmit, onBack, user }: Interactiv
 
   const progressPercentage = ((currentQuestion + 1) / questions.length) * 100;
 
-  const renderResumeUpload = () => (
-    <div className="space-y-6">
-      <div className="flex items-center mb-4">
-        <div className="bg-blue-500 p-3 rounded-full mr-4">
-          <Upload className="h-6 w-6 text-white" />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 py-8">
+      <div className="container mx-auto px-4 max-w-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            onClick={currentQuestion === 0 ? onBack : handlePrevious}
+            className="hover:bg-purple-100"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {currentQuestion === 0 ? '返回首页' : '上一题'}
+          </Button>
+          <div className="text-sm text-gray-600">
+            问题 {currentQuestion + 1} / {questions.length}
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold">上传简历 (可选)</h2>
-          <p className="text-gray-600 mt-1">上传简历可以帮助我们快速提取您的信息</p>
-        </div>
-      </div>
 
-      {!uploadedResume ? (
-        <div className="space-y-6">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <Label htmlFor="resume-upload" className="cursor-pointer">
-              <span className="text-lg font-medium text-gray-700">点击上传简历</span>
-              <p className="text-sm text-gray-500 mt-2">支持PDF或Word格式，最大5MB</p>
-            </Label>
-            <Input
-              id="resume-upload"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleResumeUpload}
-              className="hidden"
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>完成进度</span>
+            <span>{Math.round(progressPercentage)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={handleSkipUpload}
-              className="px-8 py-3"
-            >
-              跳过，手动填写信息
-            </Button>
-          </div>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {!extractedData ? (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">正在解析简历中...</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <h3 className="text-lg font-semibold text-green-800 mb-3">已提取信息，请核对确认：</h3>
-                <div className="grid gap-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">姓名：</span>
-                    <span className="font-medium">{extractedData.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">学历：</span>
-                    <span className="font-medium">
-                      {extractedData.education === 'bachelor' ? '本科' : 
-                       extractedData.education === 'master' ? '硕士' : 
-                       extractedData.education === 'phd' ? '博士' : '高中'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">GPA：</span>
-                    <span className="font-medium">{extractedData.gpa}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">专业：</span>
-                    <span className="font-medium">计算机科学</span>
-                  </div>
-                </div>
+
+        {/* Question Card */}
+        <Card className="shadow-xl border-0 mb-8">
+          <CardHeader className={`bg-gradient-to-r from-${currentQ.color}-600 to-${currentQ.color}-700 text-white rounded-t-lg`}>
+            <div className="flex items-center mb-4">
+              <div className={`bg-${currentQ.color}-500 p-3 rounded-full mr-4`}>
+                <IconComponent className="h-6 w-6 text-white" />
               </div>
-              
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleConfirmExtractedData}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                >
-                  确认信息，继续
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSkipUpload}
-                  className="flex-1"
-                >
-                  手动填写
-                </Button>
+              <div>
+                <h2 className="text-2xl font-bold">{currentQ.title}</h2>
+                <p className="text-${currentQ.color}-100 mt-1">{currentQ.description}</p>
               </div>
             </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            <div className="text-sm text-${currentQ.color}-100">
+              📊 {currentQ.scholarshipCount}+ 个奖学金项目需要此信息
+            </div>
+          </CardHeader>
+          <CardContent className="p-8">
+            {currentQ.component}
+          </CardContent>
+        </Card>
 
-  const renderQuestionForm = () => (
-    <div className="space-y-6">
-      {/* Progress Bar */}
-      <div>
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
-          <span>完成进度</span>
-          <span>{Math.round(progressPercentage)}%</span>
+        {/* Navigation Buttons */}
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleNext}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            disabled={!isCurrentQuestionValid()}
+          >
+            {currentQuestion === questions.length - 1 ? '完成匹配' : '下一题'}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Question Content */}
-      <div className="space-y-4">
-        <div className="flex items-center mb-4">
-          <div className={`bg-${currentQ?.color || 'blue'}-500 p-3 rounded-full mr-4`}>
-            <IconComponent className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">{currentQ?.title}</h2>
-            <p className="text-gray-600 mt-1">{currentQ?.description}</p>
-          </div>
+        {/* User Info */}
+        <div className="mt-8 text-center text-gray-600">
+          欢迎，{user?.name || user?.email || '用户'}！
         </div>
-        <div className="text-sm text-gray-500">
-          📊 {currentQ?.scholarshipCount}+ 个奖学金项目需要此信息
-        </div>
-        
-        <div className="pt-4">
-          {currentQ?.component}
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
-        <Button 
-          variant="outline"
-          onClick={currentQuestion === 0 ? onClose : handlePrevious}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {currentQuestion === 0 ? '取消' : '上一题'}
-        </Button>
-        
-        <Button 
-          onClick={handleNext}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-          disabled={!isCurrentQuestionValid()}
-        >
-          {currentQuestion === questions.length - 1 ? '完成匹配' : '下一题'}
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* User Info */}
-      <div className="text-center text-gray-600 pt-4">
-        欢迎，{user?.name || user?.email || '用户'}！
       </div>
     </div>
-  );
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {showResumeUpload ? '完善个人信息' : `问题 ${currentQuestion + 1} / ${questions.length}`}
-          </DialogTitle>
-        </DialogHeader>
-        
-        {showResumeUpload ? renderResumeUpload() : renderQuestionForm()}
-      </DialogContent>
-    </Dialog>
   );
 };
 
