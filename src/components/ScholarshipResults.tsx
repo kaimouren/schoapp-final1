@@ -13,27 +13,41 @@ interface ScholarshipResultsProps {
   onBack: () => void;
   onViewDetails: (scholarship: any) => void;
   showInitialLoader?: boolean;
+  onSaveScholarship?: (scholarship: any) => void;
+  onOneClickApply?: (scholarship: any) => void;
+  savedScholarships?: any[];
 }
 
-const ScholarshipResults = ({ formData, onBack, onViewDetails, showInitialLoader = true }: ScholarshipResultsProps) => {
+const ScholarshipResults = ({ 
+  formData, 
+  onBack, 
+  onViewDetails, 
+  showInitialLoader = true,
+  onSaveScholarship,
+  onOneClickApply,
+  savedScholarships = []
+}: ScholarshipResultsProps) => {
   const [showLoader, setShowLoader] = useState(showInitialLoader);
   const [activeTab, setActiveTab] = useState('results');
-  const [savedScholarships, setSavedScholarships] = useState<Set<number>>(new Set());
 
   const handleLoaderComplete = () => {
     setShowLoader(false);
   };
 
-  const toggleSaved = (scholarshipId: number) => {
-    setSavedScholarships(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(scholarshipId)) {
-        newSet.delete(scholarshipId);
-      } else {
-        newSet.add(scholarshipId);
-      }
-      return newSet;
-    });
+  const isScholarshipSaved = (scholarshipId: number) => {
+    return savedScholarships.some(s => s.id === scholarshipId);
+  };
+
+  const toggleSaved = (scholarship: any) => {
+    if (onSaveScholarship) {
+      onSaveScholarship(scholarship);
+    }
+  };
+
+  const handleOneClickApply = (scholarship: any) => {
+    if (onOneClickApply) {
+      onOneClickApply(scholarship);
+    }
   };
 
   // 汇率转换函数
@@ -380,13 +394,6 @@ const ScholarshipResults = ({ formData, onBack, onViewDetails, showInitialLoader
 
   const allScholarships = [...recommendedScholarships, ...otherScholarships];
 
-  const getMatchColor = (rate: number) => {
-    if (rate >= 90) return "bg-green-500";
-    if (rate >= 80) return "bg-blue-500";
-    if (rate >= 70) return "bg-yellow-500";
-    return "bg-gray-500";
-  };
-
   const calculateDaysLeft = (deadline: string) => {
     const deadlineDate = new Date(deadline);
     const today = new Date();
@@ -395,12 +402,140 @@ const ScholarshipResults = ({ formData, onBack, onViewDetails, showInitialLoader
     return diffDays;
   };
 
+  const renderScholarshipCard = (scholarship: any, isRecommended = false) => (
+    <Card 
+      key={scholarship.id} 
+      className={`hover:shadow-lg transition-shadow duration-300 relative ${
+        isRecommended ? 'border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50' : 'border-0 shadow-lg'
+      }`}
+    >
+      {/* Bookmark Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 right-4 z-10"
+        onClick={() => toggleSaved(scholarship)}
+      >
+        <Heart 
+          className={`h-5 w-5 ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+        />
+      </Button>
+
+      <CardHeader className="pb-4">
+        <div className="flex justify-between items-start pr-12">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              {isRecommended ? (
+                <Trophy className="h-6 w-6 text-yellow-500" />
+              ) : (
+                <Award className="h-6 w-6 text-blue-500" />
+              )}
+              <CardTitle className="text-xl">{scholarship.name}</CardTitle>
+              <MatchDetails 
+                matchRate={scholarship.matchRate} 
+                details={scholarship.matchDetails}
+              />
+              {isRecommended && <Badge className="bg-yellow-500 text-white">推荐</Badge>}
+            </div>
+            <div className="flex items-center gap-4 text-gray-600 mb-2">
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span>{scholarship.university} • {scholarship.country}</span>
+              </div>
+              <Badge variant="outline">{scholarship.type}</Badge>
+            </div>
+            {/* Application Stats */}
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                <span>本月已有{scholarship.applicationCount}人申请</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                <span>浏览量：{scholarship.viewCount}+</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-green-600">{scholarship.amount}</div>
+            <div className="text-sm text-green-500">{convertToRMB(scholarship.amount)}</div>
+            <div className="text-xs text-gray-500">每年</div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-700 mb-4">{scholarship.description}</p>
+        
+        {/* Eligibility Status */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+          <p className="text-sm font-medium text-green-800">
+            申请资格评估: {scholarship.eligibilityStatus}
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-red-500" />
+              申请截止日期
+            </h4>
+            <p className="text-red-600 font-medium">{scholarship.deadline}</p>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">申请要求</h4>
+            <div className="flex flex-wrap gap-2">
+              {scholarship.requirements.map((req: string, idx: number) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {req}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center pt-4 border-t border-gray-200 gap-4">
+          <div className="flex items-center gap-1">
+            {[...Array(5)].map((_, i) => (
+              <Star 
+                key={i} 
+                className={`h-4 w-4 ${i < Math.floor(scholarship.matchRate / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+              />
+            ))}
+            <span className="text-sm text-gray-600 ml-2">匹配度评分</span>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => handleOneClickApply(scholarship)}
+              className="whitespace-nowrap"
+            >
+              一键申请
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+            <Button 
+              className={`whitespace-nowrap ${
+                isRecommended 
+                  ? 'bg-yellow-600 hover:bg-yellow-700' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } text-white`}
+              onClick={() => onViewDetails(scholarship)}
+            >
+              查看详情 (剩{Math.max(0, calculateDaysLeft(scholarship.deadline))}天)
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <ResultsNavigation 
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        savedCount={savedScholarships.size}
+        savedCount={savedScholarships.length}
       />
 
       <div className="container mx-auto px-4 max-w-6xl py-8">
@@ -490,115 +625,7 @@ const ScholarshipResults = ({ formData, onBack, onViewDetails, showInitialLoader
               <span className="text-gray-600 text-sm ml-2">- 奖学金，从来不只属于少数人</span>
             </div>
             <div className="grid gap-6">
-              {recommendedScholarships.map((scholarship, index) => (
-                <Card key={scholarship.id} className="border-2 border-yellow-400 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-yellow-50 to-orange-50 relative">
-                  {/* Bookmark Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-4 right-4 z-10"
-                    onClick={() => toggleSaved(scholarship.id)}
-                  >
-                    <Heart 
-                      className={`h-5 w-5 ${savedScholarships.has(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                    />
-                  </Button>
-
-                  <CardHeader className="pb-4">
-                    <div className="flex justify-between items-start pr-12">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Trophy className="h-6 w-6 text-yellow-500" />
-                          <CardTitle className="text-xl">{scholarship.name}</CardTitle>
-                          <MatchDetails 
-                            matchRate={scholarship.matchRate} 
-                            details={scholarship.matchDetails}
-                          />
-                          <Badge className="bg-yellow-500 text-white">推荐</Badge>
-                        </div>
-                        {/* Slogan for each card */}
-                        <div className="text-sm text-yellow-700 mb-2 italic">
-                          {index === 0 ? "一份申请，成就无限可能" : "轻松申请，收获非凡"}
-                        </div>
-                        <div className="flex items-center gap-4 text-gray-600 mb-2">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{scholarship.university} • {scholarship.country}</span>
-                          </div>
-                          <Badge variant="outline">{scholarship.type}</Badge>
-                        </div>
-                        {/* Application Stats */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>本月已有{scholarship.applicationCount}人申请</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            <span>浏览量：{scholarship.viewCount}+</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-green-600">{scholarship.amount}</div>
-                        <div className="text-sm text-green-500">{convertToRMB(scholarship.amount)}</div>
-                        <div className="text-xs text-gray-500">每年</div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{scholarship.description}</p>
-                    
-                    {/* Eligibility Status */}
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                      <p className="text-sm font-medium text-green-800">
-                        申请资格评估: {scholarship.eligibilityStatus}
-                      </p>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-red-500" />
-                          申请截止日期
-                        </h4>
-                        <p className="text-red-600 font-medium">{scholarship.deadline}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">申请要求</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {scholarship.requirements.map((req, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {req}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`h-4 w-4 ${i < Math.floor(scholarship.matchRate / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                          />
-                        ))}
-                        <span className="text-sm text-gray-600 ml-2">匹配度评分</span>
-                      </div>
-                      
-                      <Button 
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                        onClick={() => onViewDetails(scholarship)}
-                      >
-                        立即申请 (剩{calculateDaysLeft(scholarship.deadline)}天)
-                        <ExternalLink className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {recommendedScholarships.map((scholarship) => renderScholarshipCard(scholarship, true))}
             </div>
           </div>
         )}
@@ -611,124 +638,14 @@ const ScholarshipResults = ({ formData, onBack, onViewDetails, showInitialLoader
           </div>
         </div>
 
-        {/* Other Scholarships with similar updates */}
+        {/* Other Scholarships */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">其他匹配奖学金</h2>
             <span className="text-blue-600 text-sm font-medium">把握当下，赢得未来</span>
           </div>
           <div className="grid gap-6">
-            {otherScholarships.map((scholarship, index) => (
-              <Card key={scholarship.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 relative">
-                {/* Bookmark Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-4 right-4 z-10"
-                  onClick={() => toggleSaved(scholarship.id)}
-                >
-                  <Heart 
-                    className={`h-5 w-5 ${savedScholarships.has(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                  />
-                </Button>
-
-                <CardHeader className="pb-4">
-                  <div className="flex justify-between items-start pr-12">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Award className="h-6 w-6 text-blue-500" />
-                        <CardTitle className="text-xl">{scholarship.name}</CardTitle>
-                        <MatchDetails 
-                          matchRate={scholarship.matchRate} 
-                          details={scholarship.matchDetails}
-                        />
-                      </div>
-                      {/* Rotating slogans for other scholarships */}
-                      <div className="text-sm text-blue-600 mb-2 italic">
-                        {index % 4 === 0 && "每一份支持，都是向前的力量"}
-                        {index % 4 === 1 && "下一位获奖者，或许就是你"}
-                        {index % 4 === 2 && "现在的坚持，是明天的收获"}
-                        {index % 4 === 3 && "未来没有剧本，机会由你定义"}
-                      </div>
-                      <div className="flex items-center gap-4 text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{scholarship.university} • {scholarship.country}</span>
-                        </div>
-                        <Badge variant="outline">{scholarship.type}</Badge>
-                      </div>
-                      {/* Application Stats */}
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          <span>本月已有{scholarship.applicationCount}人申请</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          <span>浏览量：{scholarship.viewCount}+</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-green-600">{scholarship.amount}</div>
-                      <div className="text-sm text-green-500">{convertToRMB(scholarship.amount)}</div>
-                      <div className="text-xs text-gray-500">每年</div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">{scholarship.description}</p>
-                  
-                  {/* Eligibility Status */}
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm font-medium text-green-800">
-                      申请资格评估: {scholarship.eligibilityStatus}
-                    </p>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-red-500" />
-                        申请截止日期
-                      </h4>
-                      <p className="text-red-600 font-medium">{scholarship.deadline}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">申请要求</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {scholarship.requirements.map((req, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {req}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`h-4 w-4 ${i < Math.floor(scholarship.matchRate / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                        />
-                      ))}
-                      <span className="text-sm text-gray-600 ml-2">匹配度评分</span>
-                    </div>
-                    
-                    <Button 
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => onViewDetails(scholarship)}
-                    >
-                      立即申请 (剩{calculateDaysLeft(scholarship.deadline)}天)
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {otherScholarships.map((scholarship) => renderScholarshipCard(scholarship, false))}
           </div>
         </div>
 

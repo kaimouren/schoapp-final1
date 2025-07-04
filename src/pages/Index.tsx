@@ -6,13 +6,19 @@ import AuthModal from "@/components/AuthModal";
 import InteractiveForm from "@/components/InteractiveForm";
 import ScholarshipResults from "@/components/ScholarshipResults";
 import ScholarshipDetails from "@/components/ScholarshipDetails";
+import UserPortal from "./UserPortal";
+import UserMenu from "@/components/UserMenu";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'auth' | 'form' | 'results' | 'details'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'auth' | 'form' | 'results' | 'details' | 'portal'>('home');
   const [formData, setFormData] = useState(null);
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [user, setUser] = useState(null);
   const [hasVisitedResults, setHasVisitedResults] = useState(false);
+  const [savedScholarships, setSavedScholarships] = useState<any[]>([]);
+  const [appliedScholarships, setAppliedScholarships] = useState<any[]>([]);
+  const { toast } = useToast();
 
   const handleStartMatching = () => {
     setCurrentPage('auth');
@@ -47,6 +53,57 @@ const Index = () => {
     setSelectedScholarship(null);
   };
 
+  const handlePortalClick = () => {
+    setCurrentPage('portal');
+  };
+
+  const handleBackFromPortal = () => {
+    if (hasVisitedResults) {
+      setCurrentPage('results');
+    } else {
+      setCurrentPage('home');
+    }
+  };
+
+  const handleSaveScholarship = (scholarship: any) => {
+    setSavedScholarships(prev => {
+      const exists = prev.find(s => s.id === scholarship.id);
+      if (exists) {
+        return prev.filter(s => s.id !== scholarship.id);
+      } else {
+        return [...prev, scholarship];
+      }
+    });
+  };
+
+  const handleOneClickApply = (scholarship: any) => {
+    const applicationRecord = {
+      ...scholarship,
+      status: '已提交',
+      submittedDate: new Date().toLocaleDateString('zh-CN')
+    };
+    
+    setAppliedScholarships(prev => {
+      const exists = prev.find(s => s.id === scholarship.id);
+      if (exists) {
+        return prev;
+      }
+      return [...prev, applicationRecord];
+    });
+
+    toast({
+      title: "申请已成功提交！",
+      description: `您已成功申请 ${scholarship.name}`,
+    });
+  };
+
+  const isScholarshipSaved = (scholarshipId: number) => {
+    return savedScholarships.some(s => s.id === scholarshipId);
+  };
+
+  // 只在用户已经登录（完成认证或表单）时显示用户菜单
+  const showUserMenu = user && (currentPage === 'results' || currentPage === 'details' || currentPage === 'portal');
+
   if (currentPage === 'auth') {
     return <AuthModal onSuccess={handleAuthSuccess} onBack={handleBackToHome} />;
   }
@@ -56,11 +113,60 @@ const Index = () => {
   }
 
   if (currentPage === 'results') {
-    return <ScholarshipResults formData={formData} onBack={handleBackToHome} onViewDetails={handleViewDetails} showInitialLoader={!hasVisitedResults} />;
+    return (
+      <>
+        {showUserMenu && (
+          <UserMenu 
+            savedCount={savedScholarships.length}
+            appliedCount={appliedScholarships.length}
+            onPortalClick={handlePortalClick}
+            user={user}
+          />
+        )}
+        <ScholarshipResults 
+          formData={formData} 
+          onBack={handleBackToHome} 
+          onViewDetails={handleViewDetails} 
+          showInitialLoader={!hasVisitedResults}
+          onSaveScholarship={handleSaveScholarship}
+          onOneClickApply={handleOneClickApply}
+          savedScholarships={savedScholarships}
+        />
+      </>
+    );
   }
 
   if (currentPage === 'details') {
-    return <ScholarshipDetails scholarship={selectedScholarship} onBack={handleBackToResults} />;
+    return (
+      <>
+        {showUserMenu && (
+          <UserMenu 
+            savedCount={savedScholarships.length}
+            appliedCount={appliedScholarships.length}
+            onPortalClick={handlePortalClick}
+            user={user}
+          />
+        )}
+        <ScholarshipDetails 
+          scholarship={selectedScholarship} 
+          onBack={handleBackToResults}
+          onSaveScholarship={handleSaveScholarship}
+          onOneClickApply={handleOneClickApply}
+          isSaved={isScholarshipSaved(selectedScholarship?.id)}
+        />
+      </>
+    );
+  }
+
+  if (currentPage === 'portal') {
+    return (
+      <UserPortal 
+        onBack={handleBackFromPortal}
+        savedScholarships={savedScholarships}
+        appliedScholarships={appliedScholarships}
+        onOneClickApply={handleOneClickApply}
+      />
+    );
   }
 
   const successCases = [
