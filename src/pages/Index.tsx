@@ -165,6 +165,7 @@ const Index = () => {
         savedScholarships={savedScholarships}
         appliedScholarships={appliedScholarships}
         onOneClickApply={handleOneClickApply}
+        user={user}
       />
     );
   }
