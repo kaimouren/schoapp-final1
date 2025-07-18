@@ -93,7 +93,7 @@ const ScholarshipDetails = ({ scholarship, onBack, onSaveScholarship, onOneClick
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">申请已提交</h2>
               <p className="text-lg text-gray-600 mb-8">
-                您的 {scholarship.name} 申请已成功提交。我们将在 3-5 个工作日内审核您的申请并发送结果通知。
+                太棒了！您的 {scholarship.name} 申请已成功提交。申请已提交，预计7天内反馈。我们会第一时间通知你结果！
               </p>
               <div className="flex justify-center gap-4">
                 <Button onClick={onBack} size="lg" className="bg-blue-600 hover:bg-blue-700">

@@ -52,8 +52,8 @@ const AuthModal = ({ onSuccess, onBack }: AuthModalProps) => {
     e.preventDefault();
     if (!email || !password) {
       toast({
-        title: "请输入完整信息",
-        description: "邮箱和密码不能为空",
+        title: "别急，我们再试一次",
+        description: "请检查邮箱和密码是否正确",
         variant: "destructive"
       });
       return;
@@ -121,7 +121,7 @@ const AuthModal = ({ onSuccess, onBack }: AuthModalProps) => {
           {authMode === 'select' && (
             <div className="space-y-4">
               <p className="text-gray-600 text-center mb-6">
-                请选择您的登录方式，我们将为您提供个性化的奖学金匹配服务
+                我们不会泄露你的信息，请放心填写。让我们一起找到属于你的机会！
               </p>
               
               <Button
@@ -220,7 +220,7 @@ const AuthModal = ({ onSuccess, onBack }: AuthModalProps) => {
               </Button>
               
               <p className="text-xs text-gray-500 text-center">
-                我们将向您的邮箱发送验证码以完成注册
+                放心，我们会保护你的隐私。马上就能看到为你推荐的奖学金了！
               </p>
             </form>
           )}

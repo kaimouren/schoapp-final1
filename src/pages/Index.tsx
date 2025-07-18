@@ -8,10 +8,12 @@ import ScholarshipResults from "@/components/ScholarshipResults";
 import ScholarshipDetails from "@/components/ScholarshipDetails";
 import UserPortal from "./UserPortal";
 import UserMenu from "@/components/UserMenu";
+import FeaturedScholarships from "@/components/FeaturedScholarships";
+import TemplateCenter from "@/components/TemplateCenter";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'auth' | 'form' | 'results' | 'details' | 'portal'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'auth' | 'form' | 'results' | 'details' | 'portal' | 'templates'>('home');
   const [formData, setFormData] = useState(null);
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [user, setUser] = useState(null);
@@ -193,6 +195,10 @@ const Index = () => {
     );
   }
 
+  if (currentPage === 'templates') {
+    return <TemplateCenter onBack={handleBackToHome} />;
+  }
+
   const successCases = [
     {
       name: "李明",
@@ -243,17 +249,18 @@ const Index = () => {
             </div>
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-8">
-            奖学金智能匹配平台
+            我们帮你发现那些原本以为遥不可及的奖学金
           </h1>
           <p className="text-2xl text-gray-600 mb-12 max-w-4xl mx-auto">
-            为中国学生推荐最合适的海外奖学金，基于AI算法精准匹配，助您实现留学梦想
+            智能推荐 • 一键申请 • 申请进度追踪<br/>
+            让每一份努力都能找到属于它的奖励
           </p>
           <Button 
             onClick={handleStartMatching}
             size="lg"
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-8 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
           >
-            开始匹配奖学金
+            注册后解锁你的专属奖学金匹配
             <ArrowRight className="ml-3 h-6 w-6" />
           </Button>
         </div>
@@ -392,6 +399,35 @@ const Index = () => {
               <div className="text-gray-600 text-lg">满意度</div>
             </div>
           </div>
+        </div>
+
+        {/* Featured Scholarships */}
+        <FeaturedScholarships 
+          onViewDetails={handleViewDetails}
+          onSaveScholarship={handleSaveScholarship}
+          savedScholarships={savedScholarships}
+        />
+
+        {/* Template Center Link */}
+        <div className="mb-20 text-center">
+          <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-8">
+              <FileText className="h-16 w-16 text-purple-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">文书模板中心</h3>
+              <p className="text-lg text-gray-600 mb-6">
+                不知道怎么写文书？我们先帮你起个头！<br/>
+                个人陈述、推荐信模板免费下载，付费用户可请求文书定制修改
+              </p>
+              <Button
+                onClick={() => setCurrentPage('templates')}
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+              >
+                浏览模板中心
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Success Cases */}

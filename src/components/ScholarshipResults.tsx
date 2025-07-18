@@ -467,11 +467,11 @@ const ScholarshipResults = ({
         <p className="text-gray-700 mb-4">{scholarship.description}</p>
         
         {/* Eligibility Status */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-          <p className="text-sm font-medium text-green-800">
-            申请资格评估: {scholarship.eligibilityStatus}
-          </p>
-        </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm font-medium text-green-800">
+                    ✨ {scholarship.eligibilityStatus} - 这可能就是你期待已久的机会！
+                  </p>
+                </div>
         
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div>
