@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Calendar, DollarSign, MapPin, Award, Clock, Users, Heart, Zap } from "lucide-react";
 
 interface FeaturedScholarshipsProps {
@@ -122,110 +123,121 @@ const FeaturedScholarships = ({ onViewDetails, onSaveScholarship, savedScholarsh
           {/* 重复两遍数据以实现无缝滚动 */}
           {[...featuredScholarships, ...featuredScholarships].map((scholarship, index) => (
             <div key={`${scholarship.id}-${index}`} className="flex-shrink-0 w-80">
-              <Card 
-                className={`relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
-                  scholarship.isHot ? 'border-2 border-orange-400 bg-gradient-to-br from-orange-50 to-red-50' :
-                  scholarship.isUrgent ? 'border-2 border-red-400 bg-gradient-to-br from-red-50 to-pink-50' :
-                  scholarship.isRecommended ? 'border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' : ''
-                }`}
-              >
-                {/* Status badges */}
-                <div className="absolute top-4 right-4 z-10 flex gap-2">
-                  {scholarship.isHot && (
-                    <Badge className="bg-orange-500 text-white animate-pulse">
-                      🔥 热门
-                    </Badge>
-                  )}
-                  {scholarship.isUrgent && (
-                    <Badge className="bg-red-500 text-white animate-pulse">
-                      ⏰ 快截止了
-                    </Badge>
-                  )}
-                  {scholarship.isRecommended && (
-                    <Badge className="bg-blue-500 text-white">
-                      ⭐ 推荐
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Bookmark Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-4 left-4 z-10"
-                  onClick={() => toggleSaved(scholarship)}
-                >
-                  <Heart 
-                    className={`h-5 w-5 ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                  />
-                </Button>
-
-                <CardHeader className="pt-16 pb-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Award className="h-6 w-6 text-yellow-500" />
-                        <CardTitle className="text-lg">{scholarship.name}</CardTitle>
-                      </div>
-                      <div className="flex items-center gap-4 text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span className="text-sm">{scholarship.university} • {scholarship.country}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Users className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">本月{scholarship.applicants}人申请</span>
-                      </div>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  {/* 简化的显示卡片 */}
+                  <div className={`relative cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                    scholarship.isHot ? 'border-orange-400 bg-gradient-to-br from-orange-50 to-red-50' :
+                    scholarship.isUrgent ? 'border-red-400 bg-gradient-to-br from-red-50 to-pink-50' :
+                    scholarship.isRecommended ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' :
+                    'border-gray-200 bg-white hover:border-blue-300'
+                  }`}>
+                    {/* Status badges */}
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {scholarship.isHot && (
+                        <Badge className="bg-orange-500 text-white text-xs px-2 py-1">
+                          🔥
+                        </Badge>
+                      )}
+                      {scholarship.isUrgent && (
+                        <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                          ⏰
+                        </Badge>
+                      )}
+                      {scholarship.isRecommended && (
+                        <Badge className="bg-blue-500 text-white text-xs px-2 py-1">
+                          ⭐
+                        </Badge>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-green-600">{scholarship.amount}</div>
+
+                    <div className="text-center">
+                      <h3 className="font-semibold text-gray-900 mb-2 text-sm leading-tight">
+                        {scholarship.name}
+                      </h3>
+                      <div className="text-lg font-bold text-green-600">{scholarship.amount}</div>
                       <div className="text-xs text-green-500">{convertToRMB(scholarship.amount)}</div>
                     </div>
                   </div>
-                </CardHeader>
+                </HoverCardTrigger>
                 
-                <CardContent>
-                  <p className="text-gray-700 mb-4 text-sm">{scholarship.description}</p>
-                  
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {scholarship.tags.map((tag: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  {/* Deadline info */}
-                  <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-red-500" />
-                      <span className="text-sm text-red-600 font-medium">{scholarship.deadline}</span>
+                <HoverCardContent className="w-80 z-50">
+                  {/* 完整的卡片内容 */}
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Award className="h-5 w-5 text-yellow-500" />
+                          <h4 className="font-semibold text-gray-900">{scholarship.name}</h4>
+                        </div>
+                        <div className="flex items-center gap-1 mb-2">
+                          <MapPin className="h-3 w-3 text-gray-500" />
+                          <span className="text-sm text-gray-600">{scholarship.university} • {scholarship.country}</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleSaved(scholarship)}
+                      >
+                        <Heart 
+                          className={`h-4 w-4 ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                        />
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-orange-500" />
-                      <span className="text-xs text-orange-600">还剩{scholarship.daysLeft}天</span>
-                    </div>
-                  </div>
 
-                  {scholarship.daysLeft <= 15 && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mb-4">
-                      <p className="text-xs text-orange-800 font-medium">
-                        ⚠️ 还剩{scholarship.daysLeft}天就截止，建议尽快准备！
-                      </p>
+                    {/* Amount */}
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-xl font-bold text-green-600">{scholarship.amount}</div>
+                      <div className="text-sm text-green-500">{convertToRMB(scholarship.amount)}</div>
                     </div>
-                  )}
-                  
-                  <Button
-                    onClick={() => onViewDetails(scholarship)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
-                  >
-                    <Zap className="h-4 w-4" />
-                    一键申请
-                  </Button>
-                </CardContent>
-              </Card>
+
+                    {/* Description */}
+                    <p className="text-gray-700 text-sm">{scholarship.description}</p>
+                    
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1">
+                      {scholarship.tags.map((tag: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    {/* Deadline */}
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-red-500" />
+                        <span className="text-xs text-red-600">{scholarship.deadline}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-orange-500" />
+                        <span className="text-xs text-orange-600">还剩{scholarship.daysLeft}天</span>
+                      </div>
+                    </div>
+
+                    {/* Urgency warning */}
+                    {scholarship.daysLeft <= 15 && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                        <p className="text-xs text-orange-800">
+                          ⚠️ 还剩{scholarship.daysLeft}天截止，建议尽快准备！
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Apply button */}
+                    <Button
+                      onClick={() => onViewDetails(scholarship)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                      size="sm"
+                    >
+                      <Zap className="h-4 w-4" />
+                      一键申请
+                    </Button>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             </div>
           ))}
         </div>
