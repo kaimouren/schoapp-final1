@@ -11,6 +11,7 @@ import UserMenu from "@/components/UserMenu";
 import FeaturedScholarships from "@/components/FeaturedScholarships";
 import TemplateCenter from "@/components/TemplateCenter";
 import { useToast } from "@/hooks/use-toast";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState<'home' | 'auth' | 'form' | 'results' | 'details' | 'portal' | 'templates'>('home');
@@ -241,30 +242,40 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-20 pt-12">
-          <div className="flex justify-center mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-full">
-              <GraduationCap className="h-16 w-16 text-white" />
+      <div 
+        className="relative bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBackground})` }}
+      >
+        {/* Background overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 via-blue-800/50 to-indigo-900/60"></div>
+        
+        <div className="container mx-auto px-4 py-16 relative z-10">
+          <div className="text-center mb-20 pt-12">
+            <div className="flex justify-center mb-8">
+              <div className="bg-gradient-to-r from-white/20 to-white/30 backdrop-blur-sm p-6 rounded-full border border-white/20">
+                <GraduationCap className="h-16 w-16 text-white" />
+              </div>
             </div>
+            <h1 className="text-6xl font-bold text-white mb-8 drop-shadow-lg">
+              我们帮你发现那些原本以为遥不可及的奖学金
+            </h1>
+            <p className="text-2xl text-white/90 mb-12 max-w-4xl mx-auto drop-shadow-md">
+              智能推荐 • 一键申请 • 申请进度追踪<br/>
+              让每一份努力都能找到属于它的奖励
+            </p>
+            <Button 
+              onClick={handleStartMatching}
+              size="lg"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-8 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-white/20"
+            >
+              注册后解锁你的专属奖学金匹配
+              <ArrowRight className="ml-3 h-6 w-6" />
+            </Button>
           </div>
-          <h1 className="text-6xl font-bold text-gray-900 mb-8">
-            我们帮你发现那些原本以为遥不可及的奖学金
-          </h1>
-          <p className="text-2xl text-gray-600 mb-12 max-w-4xl mx-auto">
-            智能推荐 • 一键申请 • 申请进度追踪<br/>
-            让每一份努力都能找到属于它的奖励
-          </p>
-          <Button 
-            onClick={handleStartMatching}
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-8 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-          >
-            注册后解锁你的专属奖学金匹配
-            <ArrowRight className="ml-3 h-6 w-6" />
-          </Button>
         </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-16">
         {/* Stats Section */}
         <div className="bg-white rounded-2xl shadow-xl p-10 mb-20">
           <div className="grid md:grid-cols-4 gap-8 text-center">
