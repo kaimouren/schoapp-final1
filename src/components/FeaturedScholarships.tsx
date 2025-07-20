@@ -115,10 +115,10 @@ const FeaturedScholarships = ({ onViewDetails, onSaveScholarship, savedScholarsh
       {/* 滚动展示容器 */}
       <div className="relative overflow-hidden">
         <div 
-          className="flex gap-6 animate-scroll hover:pause-animation"
+          className={`flex gap-6 ${hoveredScholarship ? '' : 'animate-scroll'}`}
           style={{
             width: `${featuredScholarships.length * 320 * 2}px`,
-            animation: 'scroll 30s linear infinite'
+            animation: hoveredScholarship ? 'none' : 'scroll 30s linear infinite'
           }}
         >
           {/* 重复两遍数据以实现无缝滚动 */}
@@ -167,8 +167,14 @@ const FeaturedScholarships = ({ onViewDetails, onSaveScholarship, savedScholarsh
               {/* 悬停时显示的完整卡片 */}
               {hoveredScholarship === scholarship.id && (
                 <div 
-                  className="absolute top-0 left-0 w-80 bg-white border-2 border-blue-400 rounded-xl shadow-2xl z-50 p-4"
-                  style={{ animation: 'fadeIn 0.2s ease-out' }}
+                  className="fixed bg-white border-2 border-blue-400 rounded-xl shadow-2xl p-4 w-80"
+                  style={{ 
+                    zIndex: 9999,
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    animation: 'fadeIn 0.2s ease-out'
+                  }}
                 >
                   {/* Header */}
                   <div className="flex justify-between items-start mb-3">
