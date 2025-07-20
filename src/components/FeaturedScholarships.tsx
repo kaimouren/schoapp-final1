@@ -125,19 +125,24 @@ const FeaturedScholarships = ({ onViewDetails, onSaveScholarship, savedScholarsh
           {[...featuredScholarships, ...featuredScholarships].map((scholarship, index) => (
             <div 
               key={`${scholarship.id}-${index}`} 
-              className="flex-shrink-0 w-80 relative"
+              className="flex-shrink-0 relative"
+              style={{ width: hoveredScholarship === scholarship.id ? '400px' : '280px' }}
               onMouseEnter={() => setHoveredScholarship(scholarship.id)}
               onMouseLeave={() => setHoveredScholarship(null)}
             >
-              {/* 简化的显示卡片 */}
-              <div className={`relative cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
-                scholarship.isHot ? 'border-orange-400 bg-gradient-to-br from-orange-50 to-red-50' :
-                scholarship.isUrgent ? 'border-red-400 bg-gradient-to-br from-red-50 to-pink-50' :
-                scholarship.isRecommended ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' :
-                'border-gray-200 bg-white hover:border-blue-300'
+              <div className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 overflow-hidden ${
+                hoveredScholarship === scholarship.id 
+                  ? 'p-4 shadow-2xl border-blue-400 bg-white' 
+                  : `p-6 shadow-lg ${
+                      scholarship.isHot ? 'border-orange-400 bg-gradient-to-br from-orange-50 to-red-50' :
+                      scholarship.isUrgent ? 'border-red-400 bg-gradient-to-br from-red-50 to-pink-50' :
+                      scholarship.isRecommended ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' :
+                      'border-gray-200 bg-white hover:border-blue-300'
+                    }`
               }`}>
+                
                 {/* Status badges */}
-                <div className="absolute top-2 right-2 flex gap-1">
+                <div className="absolute top-2 right-2 flex gap-1 z-10">
                   {scholarship.isHot && (
                     <Badge className="bg-orange-500 text-white text-xs px-2 py-1">
                       🔥
@@ -155,106 +160,98 @@ const FeaturedScholarships = ({ onViewDetails, onSaveScholarship, savedScholarsh
                   )}
                 </div>
 
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm leading-tight">
-                    {scholarship.name}
-                  </h3>
-                  <div className="text-lg font-bold text-green-600">{scholarship.amount}</div>
-                  <div className="text-xs text-green-500">{convertToRMB(scholarship.amount)}</div>
-                </div>
-              </div>
-              
-              {/* 悬停时显示的完整卡片 */}
-              {hoveredScholarship === scholarship.id && (
-                <div 
-                  className="fixed bg-white border-2 border-blue-400 rounded-xl shadow-2xl p-4 w-80"
-                  style={{ 
-                    zIndex: 9999,
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    animation: 'fadeIn 0.2s ease-out'
-                  }}
-                >
-                  {/* Header */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Award className="h-5 w-5 text-yellow-500" />
-                        <h4 className="font-semibold text-gray-900 text-sm">{scholarship.name}</h4>
+                {hoveredScholarship === scholarship.id ? (
+                  /* 完整卡片内容 */
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex justify-between items-start pt-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Award className="h-5 w-5 text-yellow-500" />
+                          <h4 className="font-semibold text-gray-900 text-sm">{scholarship.name}</h4>
+                        </div>
+                        <div className="flex items-center gap-1 mb-2">
+                          <MapPin className="h-3 w-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">{scholarship.university} • {scholarship.country}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 mb-2">
-                        <MapPin className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-600">{scholarship.university} • {scholarship.country}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSaved(scholarship);
+                        }}
+                      >
+                        <Heart 
+                          className={`h-4 w-4 ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                        />
+                      </Button>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-lg font-bold text-green-600">{scholarship.amount}</div>
+                      <div className="text-xs text-green-500">{convertToRMB(scholarship.amount)}</div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-gray-700 text-xs">{scholarship.description}</p>
+                    
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1">
+                      {scholarship.tags.slice(0, 3).map((tag: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    {/* Deadline */}
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-red-500" />
+                        <span className="text-xs text-red-600">{scholarship.deadline}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-orange-500" />
+                        <span className="text-xs text-orange-600">还剩{scholarship.daysLeft}天</span>
                       </div>
                     </div>
+
+                    {/* Urgency warning */}
+                    {scholarship.daysLeft <= 15 && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                        <p className="text-xs text-orange-800">
+                          ⚠️ 还剩{scholarship.daysLeft}天截止，建议尽快准备！
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Apply button */}
                     <Button
-                      variant="ghost"
-                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleSaved(scholarship);
+                        onViewDetails(scholarship);
                       }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                      size="sm"
                     >
-                      <Heart 
-                        className={`h-4 w-4 ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                      />
+                      <Zap className="h-4 w-4" />
+                      一键申请
                     </Button>
                   </div>
-
-                  {/* Amount */}
-                  <div className="text-center p-3 bg-green-50 rounded-lg mb-3">
+                ) : (
+                  /* 简化显示 */
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-900 mb-2 text-sm leading-tight">
+                      {scholarship.name}
+                    </h3>
                     <div className="text-lg font-bold text-green-600">{scholarship.amount}</div>
                     <div className="text-xs text-green-500">{convertToRMB(scholarship.amount)}</div>
                   </div>
-
-                  {/* Description */}
-                  <p className="text-gray-700 text-xs mb-3">{scholarship.description}</p>
-                  
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {scholarship.tags.slice(0, 3).map((tag: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  {/* Deadline */}
-                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg mb-3">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3 text-red-500" />
-                      <span className="text-xs text-red-600">{scholarship.deadline}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-orange-500" />
-                      <span className="text-xs text-orange-600">还剩{scholarship.daysLeft}天</span>
-                    </div>
-                  </div>
-
-                  {/* Urgency warning */}
-                  {scholarship.daysLeft <= 15 && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mb-3">
-                      <p className="text-xs text-orange-800">
-                        ⚠️ 还剩{scholarship.daysLeft}天截止，建议尽快准备！
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Apply button */}
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewDetails(scholarship);
-                    }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
-                    size="sm"
-                  >
-                    <Zap className="h-4 w-4" />
-                    一键申请
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
